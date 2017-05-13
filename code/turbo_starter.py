@@ -55,7 +55,7 @@ def get_im_cv2_mod(path, img_rows, img_cols, color_type=1):
     img = cv2.warpAffine(img, M, (img.shape[1], img.shape[0]))
     resized = cv2.resize(img, (img_cols, img_rows), cv2.INTER_LINEAR)
     return resized
-    
+
 
 def get_driver_data():
     dr = dict()
@@ -116,7 +116,7 @@ def load_test(img_rows, img_cols, color_type=1):
         total += 1
         if total%thr == 0:
             print('Read {} images from {}'.format(total, len(files)))
-    
+
     print('Read test data time: {} seconds'.format(round(time.time() - start_time, 2)))
     return X_test, X_test_id
 
