@@ -29,7 +29,7 @@ use_cache = 1
 # color type: 1 - grey, 3 - rgb
 color_type_global = 1
 
-
+# Reads and resizes a image
 # color_type = 1 - gray
 # color_type = 3 - RGB
 def get_im_cv2(path, img_rows, img_cols, color_type=1):
@@ -42,7 +42,7 @@ def get_im_cv2(path, img_rows, img_cols, color_type=1):
     resized = cv2.resize(img, (img_cols, img_rows))
     return resized
 
-
+# Reads, resizes and rotates the image
 def get_im_cv2_mod(path, img_rows, img_cols, color_type=1):
     # Load as grayscale
     if color_type == 1:
@@ -56,7 +56,7 @@ def get_im_cv2_mod(path, img_rows, img_cols, color_type=1):
     resized = cv2.resize(img, (img_cols, img_rows), cv2.INTER_LINEAR)
     return resized
 
-
+# Returns a img: driver_id dictionay
 def get_driver_data():
     dr = dict()
     path = os.path.join('..', 'input', 'driver_imgs_list.csv')
@@ -72,7 +72,7 @@ def get_driver_data():
     f.close()
     return dr
 
-
+# Reads the train set
 def load_train(img_rows, img_cols, color_type=1):
     X_train = []
     y_train = []
@@ -120,7 +120,7 @@ def load_test(img_rows, img_cols, color_type=1):
     print('Read test data time: {} seconds'.format(round(time.time() - start_time, 2)))
     return X_test, X_test_id
 
-
+# Saves and restores data into pickle
 def cache_data(data, path):
     if os.path.isdir(os.path.dirname(path)):
         file = open(path, 'wb')

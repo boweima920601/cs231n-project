@@ -1,61 +1,64 @@
 import numpy as np
 import tensorflow as tf
-from tf.layers import conv2d, batch_normalization, max_pooling2d, dense, dropout
-from tf.nn import relu
+# from tensorflow.python.layers import conv2d, batch_normalization, max_pooling2d, dense, dropout
+# from tensorflow.nn import relu
 import math
+import os
 
 def load_data(debug = True):
     if debug:
-        X_train = np.load('train_data_100.npy')
-        y_train = np.load('train_label_100.npy')
+        X_train = np.load(os.path.join('..', 'data', 'train_data_100.npy'))
+        y_train = np.load(os.path.join('..', 'data', 'train_label_100.npy'))
     else:
-        X_train = np.load('train_data.npy')
-        y_train = np.load('train_label.npy')
+        X_train = np.load(os.path.join('..', 'data', 'train_data.npy'))
+        y_train = np.load(os.path.join('..', 'data', 'train_label.npy'))
     train_indicies = np.arange(X_train.shape[0])
     np.random.shuffle(train_indicies)
     num_training = int(math.ceil(X_train.shape[0] * 0.8))
     in_train = train_indicies[:num_training]
     in_val = train_indicies[num_training:]
-    X_train = X_train[in_train]
-    y_train = y_train[in_train]
     X_val = X_train[in_val]
     y_val = y_train[in_val]
+    X_train = X_train[in_train]
+    y_train = y_train[in_train]
+    # print X_train.shape, y_train.shape
+    # print X_val.shape, y_val.shape
     return X_train, y_train, X_val, y_val
 
 
 def vgg16(X, y, is_training):
     conv1 = X
     for i in range(2):
-        conv1 = conv2d(conv1, filter = 64, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool1 = max_pooling2d(conv1, pool_size = [2, 2], strides = 2)
+        conv1 = tf.layers.conv2d(conv1, filters = 64, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
+    pool1 = tf.layers.max_pooling2d(conv1, pool_size = [2, 2], strides = 2)
 
     conv3 = pool1
     for i in range(2):
-        conv3 = conv2d(conv3, filter = 128, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool2 = max_pooling2d(conv3, pool_size = [2, 2], strides = 2)
+        conv3 = tf.layers.conv2d(conv3, filters = 128, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
+    pool2 = tf.layers.max_pooling2d(conv3, pool_size = [2, 2], strides = 2)
 
     conv5 = pool2
     for i in range(3):
-        conv5 = conv2d(conv5, filter = 256, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool3 = max_pooling2d(conv5, pool_size = [2, 2], strides = 2)
+        conv5 = tf.layers.conv2d(conv5, filters = 256, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
+    pool3 = tf.layers.max_pooling2d(conv5, pool_size = [2, 2], strides = 2)
 
     conv8 = pool3
     for i in range(3):
-        conv8 = conv2d(conv8, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool4 = max_pooling2d(conv8, pool_size = [2, 2], strides = 2)
+        conv8 = tf.layers.conv2d(conv8, filters = 512, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
+    pool4 = tf.layers.max_pooling2d(conv8, pool_size = [2, 2], strides = 2)
 
     conv11 = pool4
     for i in range(3):
-        conv11 = conv2d(conv11, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool5 = max_pooling2d(conv11, pool_size = [2, 2], strides = 2)
+        conv11 = tf.layers.conv2d(conv11, filters = 512, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
+    pool5 = tf.layers.max_pooling2d(conv11, pool_size = [2, 2], strides = 2)
 
     pool5_flat = tf.reshape(pool5, [-1, 4096])
-    fc1 = dense(pool5_flat, units = 4096, activation = relu)
-    fc2 = dense(fc1, units = 4096, activation = relu)
+    fc1 = tf.layers.dense(pool5_flat, units = 4096, activation = tf.nn.relu)
+    fc2 = tf.layers.dense(fc1, units = 4096, activation = tf.nn.relu)
 
     # dropout1 = dropout(fc3, rate=0.5, training=is_training)
     # logits = dense(dropout1, units=10)
-    logits = dense(fc2, units = 10)
+    logits = tf.layers.dense(fc2, units = 10)
 
     return logits
 
@@ -94,9 +97,10 @@ def run_model(session, predict, loss_val, Xd, yd,
             # create a feed dictionary for this batch
             feed_dict = {X: Xd[idx,:],
                          y: yd[idx],
-                         is_training: training_now }
+                         is_training: training_now}
             # get batch size
             actual_batch_size = yd[idx].shape[0]
+            print actual_batch_size
 
             # have tensorflow compute loss and correct predictions
             # and (if given) perform a training step
