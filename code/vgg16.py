@@ -95,7 +95,7 @@ def run_model(session, predict, loss_val, Xd, yd,
                          y: yd[idx],
                          is_training: training_now }
             # get batch size
-            actual_batch_size = yd[i:i+batch_size].shape[0]
+            actual_batch_size = yd[idx].shape[0]
 
             # have tensorflow compute loss and correct predictions
             # and (if given) perform a training step
