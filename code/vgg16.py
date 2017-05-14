@@ -4,12 +4,13 @@ from tf.layers import conv2d, batch_normalization, max_pooling2d, dense, dropout
 from tf.nn import relu
 import math
 
-def load_data(data, label, debug = True):
-    X_train = np.load(data)
-    y_train = np.load(label)
+def load_data(debug = True):
     if debug:
-        X_train = X_train[:1000,]
-        y_train = y_train[:1000,]
+        X_train = np.load('train_data_100.npy')
+        y_train = np.load('train_label_100.npy')
+    else:
+        X_train = np.load('train_data.npy')
+        y_train = np.load('train_label.npy')
     train_indicies = np.arange(X_train.shape[0])
     np.random.shuffle(train_indicies)
     num_training = int(math.ceil(X_train.shape[0] * 0.8))
@@ -148,7 +149,7 @@ train_step = optimizer.minimize(mean_loss, global_step=global_step)
 #     train_step = optimizer.minimize(mean_loss, global_step=global_step)
 
 
-X_train, y_train, X_val, y_val = load_data('train_data.npy', 'train_label.npy', debug = True)
+X_train, y_train, X_val, y_val = load_data(debug = True)
 
 
 """
