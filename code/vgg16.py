@@ -4,6 +4,7 @@ import tensorflow as tf
 # from tensorflow.nn import relu
 import math
 import os
+import matplotlib.pyplot as plt
 
 def load_data(debug = True):
     if debug:
@@ -29,36 +30,36 @@ def load_data(debug = True):
 def vgg16(X, y, is_training):
     conv1 = X
     for i in range(2):
-        conv1 = tf.layers.conv2d(conv1, filters = 64, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
-    pool1 = tf.layers.max_pooling2d(conv1, pool_size = [2, 2], strides = 2)
+        conv1 = tf.layers.conv2d(conv1, filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+    pool1 = tf.layers.max_pooling2d(conv1, pool_size=[2, 2], strides=2)
 
     conv3 = pool1
     for i in range(2):
-        conv3 = tf.layers.conv2d(conv3, filters = 128, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
-    pool2 = tf.layers.max_pooling2d(conv3, pool_size = [2, 2], strides = 2)
+        conv3 = tf.layers.conv2d(conv3, filters=128, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+    pool2 = tf.layers.max_pooling2d(conv3, pool_size=[2, 2], strides=2)
 
     conv5 = pool2
     for i in range(3):
-        conv5 = tf.layers.conv2d(conv5, filters = 256, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
-    pool3 = tf.layers.max_pooling2d(conv5, pool_size = [2, 2], strides = 2)
+        conv5 = tf.layers.conv2d(conv5, filters=256, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+    pool3 = tf.layers.max_pooling2d(conv5, pool_size=[2, 2], strides=2)
 
     conv8 = pool3
     for i in range(3):
-        conv8 = tf.layers.conv2d(conv8, filters = 512, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
-    pool4 = tf.layers.max_pooling2d(conv8, pool_size = [2, 2], strides = 2)
+        conv8 = tf.layers.conv2d(conv8, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+    pool4 = tf.layers.max_pooling2d(conv8, pool_size=[2, 2], strides=2)
 
     conv11 = pool4
     for i in range(3):
-        conv11 = tf.layers.conv2d(conv11, filters = 512, kernel_size = [3, 3], padding = 'same', activation = tf.nn.relu)
-    pool5 = tf.layers.max_pooling2d(conv11, pool_size = [2, 2], strides = 2)
+        conv11 = tf.layers.conv2d(conv11, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+    pool5 = tf.layers.max_pooling2d(conv11, pool_size=[2, 2], strides=2)
 
-    pool5_flat = tf.reshape(pool5, [-1, 4096])
-    fc1 = tf.layers.dense(pool5_flat, units = 4096, activation = tf.nn.relu)
-    fc2 = tf.layers.dense(fc1, units = 4096, activation = tf.nn.relu)
+    pool5_flat = tf.reshape(pool5, [-1, 7 * 7 * 512])
+    fc1 = tf.layers.dense(pool5_flat, units=4096, activation = tf.nn.relu)
+    fc2 = tf.layers.dense(fc1, units=4096, activation=tf.nn.relu)
 
     # dropout1 = dropout(fc3, rate=0.5, training=is_training)
     # logits = dense(dropout1, units=10)
-    logits = tf.layers.dense(fc2, units = 10)
+    logits = tf.layers.dense(fc2, units=10)
 
     return logits
 
@@ -67,7 +68,7 @@ def run_model(session, predict, loss_val, Xd, yd,
               epochs=1, batch_size=64, print_every=100,
               training=None, plot_losses=False):
     # have tensorflow compute accuracy
-    correct_prediction = tf.equal(tf.argmax(predict,1), yd)
+    correct_prediction = tf.equal(tf.argmax(predict, 1), y)
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     # shuffle indicies
@@ -78,7 +79,7 @@ def run_model(session, predict, loss_val, Xd, yd,
 
     # setting up variables we want to compute (and optimizing)
     # if we have a training function, add that to things we compute
-    variables = [loss_val,correct_prediction,accuracy]
+    variables = [loss_val, correct_prediction, accuracy]
     if training_now:
         variables[-1] = training
 
@@ -89,10 +90,10 @@ def run_model(session, predict, loss_val, Xd, yd,
         correct = 0
         losses = []
         # make sure we iterate over the dataset once
-        for i in range(int(math.ceil(Xd.shape[0]/batch_size))):
+        for i in range(int(math.ceil(Xd.shape[0] / batch_size))):
             # generate indicies for the batch
-            start_idx = (i*batch_size)%Xd.shape[0]
-            idx = train_indicies[start_idx:start_idx+batch_size]
+            start_idx = (i * batch_size) % Xd.shape[0]
+            idx = train_indicies[start_idx: start_idx + batch_size]
 
             # create a feed dictionary for this batch
             feed_dict = {X: Xd[idx,:],
@@ -100,29 +101,28 @@ def run_model(session, predict, loss_val, Xd, yd,
                          is_training: training_now}
             # get batch size
             actual_batch_size = yd[idx].shape[0]
-            print actual_batch_size
 
             # have tensorflow compute loss and correct predictions
             # and (if given) perform a training step
-            loss, corr, _ = session.run(variables,feed_dict=feed_dict)
+            loss, corr, _ = session.run(variables, feed_dict=feed_dict)
 
             # aggregate performance stats
-            losses.append(loss*actual_batch_size)
+            losses.append(loss * actual_batch_size)
             correct += np.sum(corr)
 
             # print every now and then
             if training_now and (iter_cnt % print_every) == 0:
                 print("Iteration {0}: with minibatch training loss = {1:.3g} and accuracy of {2:.2g}"\
-                      .format(iter_cnt,loss,np.sum(corr)/actual_batch_size))
+                      .format(iter_cnt, loss, np.sum(corr) / actual_batch_size))
             iter_cnt += 1
-        total_correct = correct/Xd.shape[0]
-        total_loss = np.sum(losses)/Xd.shape[0]
+        total_correct = correct / Xd.shape[0]
+        total_loss = np.sum(losses) / Xd.shape[0]
         print("Epoch {2}, Overall loss = {0:.3g} and accuracy of {1:.3g}"\
-              .format(total_loss,total_correct,e+1))
+              .format(total_loss, total_correct, e+1))
         if plot_losses:
             plt.plot(losses)
             plt.grid(True)
-            plt.title('Epoch {} Loss'.format(e+1))
+            plt.title('Epoch {} Loss'.format(e + 1))
             plt.xlabel('minibatch number')
             plt.ylabel('minibatch loss')
             plt.show()
@@ -137,7 +137,7 @@ y = tf.placeholder(tf.int64, [None])
 is_training = tf.placeholder(tf.bool)
 y_out = vgg16(X,y,is_training)
 
-total_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels = y, logits = y_out)
+total_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=y_out)
 mean_loss = tf.reduce_mean(total_loss)
 
 global_step = tf.Variable(0, trainable=False)
@@ -153,7 +153,7 @@ train_step = optimizer.minimize(mean_loss, global_step=global_step)
 #     train_step = optimizer.minimize(mean_loss, global_step=global_step)
 
 
-X_train, y_train, X_val, y_val = load_data(debug = True)
+X_train, y_train, X_val, y_val = load_data(debug=True)
 
 
 """
@@ -166,6 +166,6 @@ with tf.Session() as sess:
     with tf.device("/cpu:0"): #"/cpu:0" or "/gpu:0"
         sess.run(tf.global_variables_initializer())
         print('Training')
-        run_model(sess,y_out,mean_loss,X_train,y_train,1,64,100,train_step,True)
+        run_model(sess, y_out, mean_loss, X_train, y_train, 2, 64, 100, train_step, False)
         print('Validation')
-        run_model(sess,y_out,mean_loss,X_val,y_val,1,64)
+        run_model(sess, y_out, mean_loss, X_val, y_val, 1, 64)
