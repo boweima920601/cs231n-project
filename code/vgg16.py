@@ -64,7 +64,7 @@ def run_model(session, predict, loss_val, Xd, yd,
               epochs=1, batch_size=64, print_every=100,
               training=None, plot_losses=False):
     # have tensorflow compute accuracy
-    correct_prediction = tf.equal(tf.argmax(predict,1), y)
+    correct_prediction = tf.equal(tf.argmax(predict,1), yd)
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     # shuffle indicies
@@ -75,7 +75,7 @@ def run_model(session, predict, loss_val, Xd, yd,
 
     # setting up variables we want to compute (and optimizing)
     # if we have a training function, add that to things we compute
-    variables = [mean_loss,correct_prediction,accuracy]
+    variables = [loss_val,correct_prediction,accuracy]
     if training_now:
         variables[-1] = training
 
