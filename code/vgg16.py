@@ -12,7 +12,7 @@ def load_data(data, label, debug = True):
         y_train = y_train[:1000,]
     train_indicies = np.arange(X_train.shape[0])
     np.random.shuffle(train_indicies)
-    num_training = math.ceil(X_train.shape[0] * 0.8)
+    num_training = int(math.ceil(X_train.shape[0] * 0.8))
     in_train = train_indicies[:num_training]
     in_val = train_indicies[num_training:]
     X_train = X_train[in_train]
@@ -87,7 +87,7 @@ def run_model(session, predict, loss_val, Xd, yd,
         # make sure we iterate over the dataset once
         for i in range(int(math.ceil(Xd.shape[0]/batch_size))):
             # generate indicies for the batch
-            start_idx = (i*batch_size)%X_train.shape[0]
+            start_idx = (i*batch_size)%Xd.shape[0]
             idx = train_indicies[start_idx:start_idx+batch_size]
 
             # create a feed dictionary for this batch
@@ -148,7 +148,7 @@ train_step = optimizer.minimize(mean_loss, global_step=global_step)
 #     train_step = optimizer.minimize(mean_loss, global_step=global_step)
 
 
-X_train, y_train, X_val, y_val = load_data('train_data.npy', 'train_label.npy')
+X_train, y_train, X_val, y_val = load_data('train_data.npy', 'train_label.npy', debug = True)
 
 
 """
@@ -156,7 +156,7 @@ run_model(session, predict, loss_val, Xd, yd,
               epochs=1, batch_size=64, print_every=100,
               training=None, plot_losses=False)
 """
-              
+
 with tf.Session() as sess:
     with tf.device("/cpu:0"): #"/cpu:0" or "/gpu:0"
         sess.run(tf.global_variables_initializer())
