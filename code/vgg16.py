@@ -4,28 +4,30 @@ from tf.layers import conv2d, batch_normalization, max_pooling2d, dense, dropout
 from tf.nn import relu
 
 def vgg16(X, y, is_training):
-    conv1 = conv2d(X, filter = 64, kernel_size = [3, 3], padding = 'same', activation = relu)
-    conv2 = conv2d(conv1, filter = 64, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool1 = max_pooling2d(conv2, pool_size = [2, 2], strides = 2)
+    conv1 = X
+    for i in range(2):
+        conv1 = conv2d(conv1, filter = 64, kernel_size = [3, 3], padding = 'same', activation = relu)
+    pool1 = max_pooling2d(conv1, pool_size = [2, 2], strides = 2)
 
-    conv3 = conv2d(pool1, filter = 128, kernel_size = [3, 3], padding = 'same', activation = relu)
-    conv4 = conv2d(conv3, filter = 128, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool2 = max_pooling2d(conv4, pool_size = [2, 2], strides = 2)
+    conv3 = pool1
+    for i in range(2):
+        conv3 = conv2d(conv3, filter = 128, kernel_size = [3, 3], padding = 'same', activation = relu)
+    pool2 = max_pooling2d(conv3, pool_size = [2, 2], strides = 2)
 
-    conv5 = conv2d(pool2, filter = 256, kernel_size = [3, 3], padding = 'same', activation = relu)
-    conv6 = conv2d(conv5, filter = 256, kernel_size = [3, 3], padding = 'same', activation = relu)
-    conv7 = conv2d(conv6, filter = 256, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool3 = max_pooling2d(conv7, pool_size = [2, 2], strides = 2)
+    conv5 = pool2
+    for i in range(3):
+        conv5 = conv2d(conv5, filter = 256, kernel_size = [3, 3], padding = 'same', activation = relu)
+    pool3 = max_pooling2d(conv5, pool_size = [2, 2], strides = 2)
 
-    conv8 = conv2d(pool3, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
-    conv9 = conv2d(conv8, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
-    conv10 = conv2d(conv9, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool4 = max_pooling2d(conv10, pool_size = [2, 2], strides = 2)
+    conv8 = pool3
+    for i in range(3):
+        conv8 = conv2d(conv8, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
+    pool4 = max_pooling2d(conv8, pool_size = [2, 2], strides = 2)
 
-    conv11 = conv2d(pool4, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
-    conv12 = conv2d(conv11, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
-    conv13 = conv2d(conv12, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
-    pool5 = max_pooling2d(conv13, pool_size = [2, 2], strides = 2)
+    conv11 = pool4
+    for i in range(3):
+        conv11 = conv2d(conv11, filter = 512, kernel_size = [3, 3], padding = 'same', activation = relu)
+    pool5 = max_pooling2d(conv11, pool_size = [2, 2], strides = 2)
 
     pool5_flat = tf.reshape(pool5, [-1, ?????])
     fc1 = dense(pool5_flat, units=???, activation = relu)
