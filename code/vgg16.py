@@ -1,12 +1,11 @@
+from __future__ import division
 import numpy as np
 import tensorflow as tf
-# from tensorflow.python.layers import conv2d, batch_normalization, max_pooling2d, dense, dropout
-# from tensorflow.nn import relu
 import math
 import os
 import matplotlib.pyplot as plt
 
-def load_data(debug = True):
+def load_data(debug=True):
     if debug:
         X_train = np.load(os.path.join('..', 'data', 'train_data_100.npy'))
         y_train = np.load(os.path.join('..', 'data', 'train_label_100.npy'))
@@ -22,8 +21,6 @@ def load_data(debug = True):
     y_val = y_train[in_val]
     X_train = X_train[in_train]
     y_train = y_train[in_train]
-    # print X_train.shape, y_train.shape
-    # print X_val.shape, y_val.shape
     return X_train, y_train, X_val, y_val
 
 
@@ -90,7 +87,7 @@ def run_model(session, predict, loss_val, Xd, yd,
         correct = 0
         losses = []
         # make sure we iterate over the dataset once
-        for i in range(int(math.ceil(Xd.shape[0] / batch_size))):
+        for i in range(int(math.ceil((Xd.shape[0] / batch_size)))):
             # generate indicies for the batch
             start_idx = (i * batch_size) % Xd.shape[0]
             idx = train_indicies[start_idx: start_idx + batch_size]
@@ -166,6 +163,6 @@ with tf.Session() as sess:
     with tf.device("/cpu:0"): #"/cpu:0" or "/gpu:0"
         sess.run(tf.global_variables_initializer())
         print('Training')
-        run_model(sess, y_out, mean_loss, X_train, y_train, 2, 64, 100, train_step, False)
+        run_model(sess, y_out, mean_loss, X_train, y_train, 1, 64, 100, train_step, False)
         print('Validation')
         run_model(sess, y_out, mean_loss, X_val, y_val, 1, 64)
