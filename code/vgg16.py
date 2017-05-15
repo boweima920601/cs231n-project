@@ -163,6 +163,6 @@ with tf.Session() as sess:
     with tf.device("/cpu:0"): #"/cpu:0" or "/gpu:0"
         sess.run(tf.global_variables_initializer())
         print('Training')
-        run_model(sess, y_out, mean_loss, X_train, y_train, 1, 64, 100, train_step, False)
+        run_model(sess, y_out, mean_loss, X_train, y_train, 1, 64, 100, train_step, True)
         print('Validation')
         run_model(sess, y_out, mean_loss, X_val, y_val, 1, 64)
