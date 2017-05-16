@@ -31,7 +31,7 @@ class Model:
 
 		global_step = tf.Variable(0, trainable=False)
 		learning_rate = tf.train.exponential_decay(FLAGS.start_learning_rate, global_step,
-												   1000, 0.9, staircase=True)
+												   FLAGS.data_size / FLAGS.batch_size, 0.9, staircase=True)
 		# batch normalization in tensorflow requires this extra dependency
 		# extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 		# with tf.control_dependencies(extra_update_ops):
