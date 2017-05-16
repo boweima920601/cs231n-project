@@ -34,12 +34,12 @@ def initialize_model(session, saver, train_dir):
 	else:
 		logging.info("Created model with fresh parameters.")
 		session.run(tf.global_variables_initializer())
-		pretrained_vgg16 = np.load('data/vgg16_weights.npz')
-		keys = sorted(weights.keys())
+		pretrained_vgg16 = np.load('../data/vgg16_weights.npz')
+		keys = sorted(pretrained_vgg16.keys())
 		tvar = tf.trainable_variables()
 		for i, k in enumerate(keys[:-2]): # exclude the last fc layer
-            print i, k, np.shape(weights[k])
-            sess.run(tvar[i].assign(weights[k]))
+			print i, k, np.shape(pretrained_vgg16[k])
+			session.run(tvar[i].assign(pretrained_vgg16[k]))
 		logging.info('Num params: %d' % sum(v.get_shape().num_elements() for v in tf.trainable_variables()))
 
 # Loads the data
