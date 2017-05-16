@@ -10,15 +10,15 @@ logging.basicConfig(level=logging.INFO)
 # Tune all the hyper params here
 tf.app.flags.DEFINE_float("start_learning_rate", 1e-5, "Learning rate.")
 tf.app.flags.DEFINE_float("dropout", 0.5, "Fraction of units randomly dropped")
-tf.app.flags.DEFINE_integer("batch_size", 40, "Batch size to use during training.")
-tf.app.flags.DEFINE_integer("epochs", 1, "Number of epochs to train.")
+tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
+tf.app.flags.DEFINE_integer("epochs", 10, "Number of epochs to train.")
 
-tf.app.flags.DEFINE_integer("data_size", 100, "The number of training samples")
+tf.app.flags.DEFINE_integer("data_size", 1000, "The number of training samples")
 tf.app.flags.DEFINE_boolean("is_debug", True, "Use smaller dataset for debug")
 tf.app.flags.DEFINE_boolean("use_save", True, "Save model into checkpoint")
 
-tf.app.flags.DEFINE_integer("print_every", 20, "How many iterations to do per print.")
-tf.app.flags.DEFINE_integer("log_every", 20, "How many iterations to do per log.")
+tf.app.flags.DEFINE_integer("print_every", 64 * 5, "How many iterations to do per print.")
+tf.app.flags.DEFINE_integer("log_every", 64 * 30, "How many iterations to do per log.")
 
 tf.app.flags.DEFINE_float("train_percent", 0.9, "Fraction of data to use as train set")
 tf.app.flags.DEFINE_boolean("eval_every_epoch", True, "Whether evaluate after each epoch")
@@ -36,10 +36,9 @@ def initialize_model(session, saver, train_dir):
 		session.run(tf.global_variables_initializer())
 		pretrained_vgg16 = np.load('../data/vgg16_weights.npz')
 		keys = sorted(pretrained_vgg16.keys())
-		tvar = tf.trainable_variables()
 		for i, k in enumerate(keys[:-2]): # exclude the last fc layer
-			print i, k, np.shape(pretrained_vgg16[k])
-			session.run(tvar[i].assign(pretrained_vgg16[k]))
+			print (i, k, np.shape(pretrained_vgg16[k]))
+			session.run(tf.trainable_variables()[i].assign(pretrained_vgg16[k]))
 		logging.info('Num params: %d' % sum(v.get_shape().num_elements() for v in tf.trainable_variables()))
 
 # Loads the data
