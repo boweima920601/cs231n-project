@@ -22,8 +22,7 @@ class Model:
 		self.setup_log()
 		self.setup_system()
 
-
-
+	# Sets up the graph
 	def setup_system(self):
 		self.y_out = self.vgg16(self.X, self.y, drop_rate=FLAGS.dropout, is_training=self.is_training)
 
@@ -45,6 +44,7 @@ class Model:
 		self.correct_prediction = tf.equal(tf.argmax(self.y_out, 1), self.y)
 		self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
 
+	# Creates log files and adds description
 	def setup_log(self):
 		description = raw_input('Please add description for the model: ')
 		start_time = '{:%m%d_%H%M%S}'.format(datetime.datetime.now())
@@ -57,6 +57,7 @@ class Model:
 		with open (self.epoch_file, 'a') as f_epoch:
 			f_epoch.write(remark)
 
+	# Creates net structure
 	def vgg16(self, X, y, drop_rate=0.5, is_training=None):
 		conv1 = X
 		for i in range(2):
@@ -93,51 +94,39 @@ class Model:
 
 		return logits
 
-	def run_model(self, session, Xd, yd, epochs=1, batch_size=64, training_now=False, use_save=False, plot_losses=False):
+	# Runs an epoch
+	def run_epoch(self, session, Xd, yd, e, variables, indicies, batch_size=64, 
+				training_now=True, use_save=True, plot_losses=True):
+		index = 0
+		correct = 0
+		losses = []
+		total_loss = 0
+		for i in range(int(math.ceil((Xd.shape[0] / batch_size)))):
+			start_idx = (i * batch_size) % Xd.shape[0]
+			idx = indicies[start_idx: start_idx + batch_size]
+			feed_dict = {self.X: Xd[idx,:], self.y: yd[idx], self.is_training: training_now}
+			actual_batch_size = yd[idx].shape[0]
 
-		# shuffle indicies
-		train_indicies = np.arange(Xd.shape[0])
-		np.random.shuffle(train_indicies)
+			# Computes loss and correct predictions
+			# and (if given) perform a training step
+			loss, corr, _ = session.run(variables, feed_dict=feed_dict)
+			losses.append(loss)
+			correct += np.sum(corr)
+			total_loss += loss * actual_batch_size
+			index += actual_batch_size
 
-		variables = [self.mean_loss, self.correct_prediction, self.accuracy]
+			if training_now and index % FLAGS.print_every == 0:
+				index_res = '{}\tloss: {:.5g}\taccuracy: {:.5g}\tE{}'.format(index, loss, np.sum(corr) / actual_batch_size, e + 1)
+				print(index_res)
+				if index % FLAGS.log_every == 0:
+					time_now = '   {:%m%d_%H%M%S}\n'.format(datetime.datetime.now())
+					with open (self.index_file, 'a') as f_index:
+						f_index.write(index_res)
+						f_index.write(time_now)
+
+		total_correct = correct / Xd.shape[0]
+		total_loss /= Xd.shape[0]
 		if training_now:
-			variables[-1] = self.train_step
-
-		iter_cnt = 0
-		for e in range(epochs):
-			index = 0
-			# keep track of losses and accuracy
-			correct = 0
-			losses = []
-			total_loss = 0
-			for i in range(int(math.ceil((Xd.shape[0] / batch_size)))):
-				start_idx = (i * batch_size) % Xd.shape[0]
-				idx = train_indicies[start_idx: start_idx + batch_size]
-				feed_dict = {self.X: Xd[idx,:], self.y: yd[idx], self.is_training: training_now}
-				actual_batch_size = yd[idx].shape[0]
-
-				# have tensorflow compute loss and correct predictions
-				# and (if given) perform a training step
-				loss, corr, _ = session.run(variables, feed_dict=feed_dict)
-				losses.append(loss)
-				correct += np.sum(corr)
-				total_loss += loss * actual_batch_size
-				iter_cnt += actual_batch_size
-				index += actual_batch_size
-
-				if training_now and index % FLAGS.print_every == 0:
-					index_res = '{}  loss  {}  accuracy  {}  E{}'.format(index, loss, np.sum(corr) / actual_batch_size, e + 1)
-					print(index_res)
-					if index % FLAGS.log_every == 0:
-						time_now = '   {:%m%d_%H%M%S}\n'.format(datetime.datetime.now())
-						with open (self.index_file, 'a') as f_index:
-							f_index.write(index_res)
-							f_index.write(time_now)
-
-			total_correct = correct / Xd.shape[0]
-			total_loss /= Xd.shape[0]
-			print("Epoch {2}, Overall loss = {0:.3g} and accuracy of {1:.3g}"\
-				  .format(total_loss, total_correct, e+1))
 			if plot_losses:
 				plt.plot(losses)
 				plt.grid(True)
@@ -145,13 +134,38 @@ class Model:
 				plt.xlabel('minibatch number')
 				plt.ylabel('minibatch loss')
 				plt.show()
-			if training_now and use_save:
+			if use_save:
 				self.saver.save(session, os.path.join('.', 'saves/model'), global_step=e + 1)
-			if not training_now:
-				time_now = '   {:%m%d_%H%M%S}\n'.format(datetime.datetime.now())
-				print('!!!!!!!!!!!!!!!!!')
-				epoch_res = '\nEpoch # {}\nLoss: {}\nf1, em on dataset: {}\nf1, em on valid_dataset:{}\n'.format(e, val_loss, train_eval, val_eval)
-				print(epoch_res)
-				with open (self.epoch_file, 'a') as f_epoch:
-					f_epoch.write(epoch_res)
-					f_epoch.write(time_now)
+		else:
+			time_now = '   {:%m%d_%H%M%S}\n'.format(datetime.datetime.now())
+			print('!!!!!!!!!!!!!!!!!')
+			epoch_res = '\nEpoch # {}\nVal Loss: {:.5g}\nVal Accuracy:{:.5g}\n'.format(e + 1, total_loss, total_correct)
+			print(epoch_res)
+			with open (self.epoch_file, 'a') as f_epoch:
+				f_epoch.write(epoch_res)
+				f_epoch.write(time_now)
+
+	# Runs the model
+	def run_model(self, session, dataset, epochs=1, batch_size=64, use_save=True, plot_losses=False):
+		X_train, y_train, X_val, y_val = dataset
+		# shuffle indicies
+		train_indicies = np.arange(X_train.shape[0])
+		np.random.shuffle(train_indicies)
+		val_indicies = np.arange(X_val.shape[0])
+		np.random.shuffle(val_indicies)
+
+		train_vars = [self.mean_loss, self.correct_prediction, self.train_step]
+		val_vars = [self.mean_loss, self.correct_prediction, self.accuracy]
+
+		for e in range(epochs):
+			# Train
+			self.run_epoch(session, X_train, y_train, e, train_vars, train_indicies, batch_size=batch_size, 
+				training_now=True, use_save=True, plot_losses=plot_losses)
+			# Evaluate
+			if FLAGS.eval_every_epoch:
+				self.run_epoch(session, X_val, y_val, e, val_vars, val_indicies, batch_size=batch_size, 
+					training_now=False, use_save=False, plot_losses=plot_losses)
+
+		if not FLAGS.eval_every_epoch:
+			self.run_epoch(session, X_val, y_val, e, val_vars, val_indicies, batch_size=batch_size, 
+					training_now=False, use_save=False, plot_losses=plot_losses)
