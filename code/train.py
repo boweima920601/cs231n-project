@@ -13,8 +13,8 @@ tf.app.flags.DEFINE_float("dropout", 0.5, "Fraction of units randomly dropped")
 tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("epochs", 10, "Number of epochs to train.")
 
-tf.app.flags.DEFINE_integer("data_size", 1000, "The number of training samples")
-tf.app.flags.DEFINE_boolean("is_debug", True, "Use smaller dataset for debug")
+tf.app.flags.DEFINE_integer("data_size", 22424, "The number of training samples")
+tf.app.flags.DEFINE_boolean("is_debug", False, "Use smaller dataset for debug")
 tf.app.flags.DEFINE_boolean("use_save", True, "Save model into checkpoint")
 
 tf.app.flags.DEFINE_integer("print_every", 64 * 5, "How many iterations to do per print.")
@@ -43,12 +43,10 @@ def initialize_model(session, saver, train_dir):
 
 # Loads the data
 def load_data(debug=True, data_size=1000):
-	if debug:
-		X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy'))
-		y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy'))
-	else:
-		X_train = np.load(os.path.join('..', 'data', 'train_data.' + str(data_size) + '.npy'))
-		y_train = np.load(os.path.join('..', 'data', 'train_label.' + str(data_size) + '.npy'))
+	if not debug:
+		data_size = FLAGS.data_size
+	X_train = np.load(os.path.join('..', 'data', 'train_data.' + str(data_size) + '.npy'))
+	y_train = np.load(os.path.join('..', 'data', 'train_label.' + str(data_size) + '.npy'))
 	train_indicies = np.arange(X_train.shape[0])
 	np.random.shuffle(train_indicies)
 	num_training = int(math.ceil(X_train.shape[0] * FLAGS.train_percent))
@@ -67,7 +65,7 @@ def main(_):
 	if not os.path.exists('logs'):
 		os.makedirs('logs')
 
-	dataset = load_data(FLAGS.is_debug, FLAGS.data_size)
+	dataset = load_data(FLAGS.is_debug)
 	X_train, y_train, X_val, y_val = dataset
 	print('data size:')
 	print(sys.getsizeof(X_train), sys.getsizeof(y_train), sys.getsizeof(X_val), sys.getsizeof(y_val))
