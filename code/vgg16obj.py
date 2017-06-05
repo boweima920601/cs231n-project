@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import math
 import os
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import sys
 # %matplotlib inline
 import logging
@@ -62,7 +62,7 @@ class Model:
 			f_epoch.write(remark)
 
 	# Creates net structure
-	def vgg16(self, X, drop_rate=0.5, reg = 1e-2, is_training=None):
+	def vgg16(self, X, drop_rate=0.5, is_training=None):
 		conv1 = X
 		for i in range(2):
 			conv1 = tf.layers.conv2d(conv1, filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
@@ -89,11 +89,11 @@ class Model:
 		pool5 = tf.layers.max_pooling2d(conv11, pool_size=[2, 2], strides=2)
 
 		pool5_flat = tf.reshape(pool5, [-1, 7 * 7 * 512])
-		fc1 = tf.layers.dense(pool5_flat, units=4096, activation = tf.nn.relu, kernel_regularizer = tf.nn.l2_loss)
-		fc2 = tf.layers.dense(fc1, units=4096, activation=tf.nn.relu, kernel_regularizer = tf.nn.l2_loss)
+		fc1 = tf.layers.dense(pool5_flat, units=4096, activation = tf.nn.relu)
+		fc2 = tf.layers.dense(fc1, units=4096, activation=tf.nn.relu)
 
 		dropout1 = tf.layers.dropout(fc2, rate=drop_rate, training=is_training)
-		logits = tf.layers.dense(dropout1, units=10, kernel_regularizer = tf.nn.l2_loss)
+		logits = tf.layers.dense(dropout1, units=10)
 	#     logits = tf.layers.dense(fc2, units=10)
 
 		return logits
@@ -155,18 +155,23 @@ class Model:
 			X_test = np.load('../data/test_data.npy')
 			# X_test = dataset
 			output_y = np.zeros((X_test.shape[0], 10))
+			print('test set length:{}'.format(X_test.shape[0]))
+			indicies = np.arange(X_test.shape[0])
 			for i in range(int(math.ceil((X_test.shape[0] / batch_size)))):
 				start_idx = (i * batch_size) % X_test.shape[0]
 				idx = indicies[start_idx: start_idx + batch_size]
+				# print(X_test[idx,:].shape)
 				feed_dict = {self.X: X_test[idx,:], self.is_training: False}
 
 				# Computes loss and correct predictions
 				# and (if given) perform a training step
-				output_y[start_idx: start_idx + batch_size] = session.run([self.softmax_y], feed_dict=feed_dict)
+				temp = session.run([self.softmax_y], feed_dict=feed_dict)[0]
+				output_y[start_idx: start_idx + batch_size, :] = temp
+				print('finished {}'.format(start_idx + batch_size))
 
 			rows = np.load('../data/test_data_id.npy')
 			cols = ['c0', 'c1', 'c2', 'c3','c4', 'c5', 'c6', 'c7', 'c8', 'c9']
-			result = pd.DataFrame(y_test, index = rows, columns = cols)
+			result = pd.DataFrame(output_y, index = rows, columns = cols)
 			now = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
 			result.to_csv('test_result_%s.csv' % now, index=True, header=True, sep=',')
 			return
