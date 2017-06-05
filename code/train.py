@@ -68,7 +68,7 @@ def main(_):
 	if not os.path.exists('logs'):
 		os.makedirs('logs')
 
-	if !FLAGS.is_testing:
+	if not FLAGS.is_testing:
 		dataset = load_data(FLAGS.is_debug)
 		X_train, y_train, X_val, y_val = dataset
 		print('data size:')
@@ -81,10 +81,11 @@ def main(_):
 
 	with tf.Session() as sess:
 		# Inits the model
-		initialize_model(sess, model.saver, '.')
-		if !FLAGS.is_testing:
-			print('Training')
+		initialize_model(sess, model.saver, './saves/')
 
+		if not FLAGS.is_testing:
+			print('Training')
+			
 			# Runs the model
 			model.run_model(sess, dataset, epochs=FLAGS.epochs, batch_size=FLAGS.batch_size, use_save=True, plot_losses=True)
 		if FLAGS.is_testing:

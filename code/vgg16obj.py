@@ -50,7 +50,7 @@ class Model:
 
 	# Creates log files and adds description
 	def setup_log(self):
-		description = raw_input('Please add description for the model: ')
+		description = input('Please add description for the model: ')
 		start_time = '{:%m%d_%H%M%S}'.format(datetime.datetime.now())
 		self.index_file = 'logs/index_log' + start_time + '.txt'
 		self.epoch_file = 'logs/epoch_log' + start_time + '.txt'
@@ -155,20 +155,25 @@ class Model:
 			X_test = np.load('../data/test_data.npy')
 			# X_test = dataset
 			output_y = np.zeros((X_test.shape[0], 10))
+			print('test set length:{}'.format(X_test.shape[0]))
+			indicies = np.arange(X_test.shape[0])
 			for i in range(int(math.ceil((X_test.shape[0] / batch_size)))):
 				start_idx = (i * batch_size) % X_test.shape[0]
 				idx = indicies[start_idx: start_idx + batch_size]
+				# print(X_test[idx,:].shape)
 				feed_dict = {self.X: X_test[idx,:], self.is_training: False}
 
 				# Computes loss and correct predictions
 				# and (if given) perform a training step
-				output_y[start_idx: start_idx + batch_size] = session.run([self.softmax_y], feed_dict=feed_dict)
+				temp = session.run([self.softmax_y], feed_dict=feed_dict)[0]
+				output_y[start_idx: start_idx + batch_size, :] = temp
+				print('finished {}'.format(start_idx + batch_size))
 
-				rows = np.load('../data/test_data_id.npy')
-				cols = ['c0', 'c1', 'c2', 'c3','c4', 'c5', 'c6', 'c7', 'c8', 'c9']
-				result = pd.DataFrame(y_test, index = rows, columns = cols)
-				now = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
-				result.to_csv('test_result_%s.csv' % now, index=True, header=True, sep=',')
+			rows = np.load('../data/test_data_id.npy')
+			cols = ['c0', 'c1', 'c2', 'c3','c4', 'c5', 'c6', 'c7', 'c8', 'c9']
+			result = pd.DataFrame(output_y, index = rows, columns = cols)
+			now = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
+			result.to_csv('test_result_%s.csv' % now, index=True, header=True, sep=',')
 			return
 
 
