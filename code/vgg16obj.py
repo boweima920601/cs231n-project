@@ -26,7 +26,7 @@ class Model:
 
 	# Sets up the graph
 	def setup_system(self):
-		self.y_out = self.vgg16(self.X, drop_rate=FLAGS.dropout, reg=FLAGS.reg, is_training=self.is_training)
+		self.y_out, self.pool5 = self.vgg16(self.X, drop_rate=FLAGS.dropout, reg=FLAGS.reg, is_training=self.is_training)
 
 		total_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.y, logits=self.y_out)
 		self.mean_loss = tf.reduce_mean(total_loss)
@@ -97,7 +97,7 @@ class Model:
 		logits = tf.layers.dense(dropout1, units=10, kernel_regularizer = reg_func)
 	#     logits = tf.layers.dense(fc2, units=10)
 
-		return logits
+		return logits, pool5_flat
 
 	# Runs an epoch
 	def run_epoch(self, session, Xd, yd, e, variables, indicies, batch_size=64,
@@ -114,7 +114,10 @@ class Model:
 
 			# Computes loss and correct predictions
 			# and (if given) perform a training step
-			loss, corr, _ = session.run(variables, feed_dict=feed_dict)
+			if training_now:
+				loss, corr, _ = session.run(variables, feed_dict=feed_dict)
+			else:
+				loss, corr, _, pool5_out = session.run(variables, feed_dict=feed_dict)
 			losses.append(loss)
 			correct += np.sum(corr)
 			total_loss += loss * actual_batch_size
@@ -166,8 +169,9 @@ class Model:
 
 				# Computes loss and correct predictions
 				# and (if given) perform a training step
-				temp = session.run([self.softmax_y], feed_dict=feed_dict)[0]
-				output_y[start_idx: start_idx + batch_size, :] = temp
+				temp = session.run([self.softmax_y, self.pool5], feed_dict=feed_dict)
+				output_y[start_idx: start_idx + batch_size, :] = temp[0]
+				pool5_out = temp[1]
 				print('finished {}'.format(start_idx + batch_size))
 
 			rows = np.load('../data/test_data_id.npy')
@@ -186,7 +190,7 @@ class Model:
 		np.random.shuffle(val_indicies)
 
 		train_vars = [self.mean_loss, self.correct_prediction, self.train_step]
-		val_vars = [self.mean_loss, self.correct_prediction, self.accuracy]
+		val_vars = [self.mean_loss, self.correct_prediction, self.accuracy, self.pool5]
 
 		for e in range(epochs):
 			# Train
