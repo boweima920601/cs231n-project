@@ -41,7 +41,7 @@ def initialize_model(session, saver, train_dir):
 		pretrained_vgg16 = np.load('../data/vgg16_weights.npz')
 		keys = sorted(pretrained_vgg16.keys())
 		for i, k in enumerate(keys[:-2]): # exclude the last fc layer
-			print (i, k, np.shape(pretrained_vgg16[k]))
+			# print (i, k, np.shape(pretrained_vgg16[k]))
 			session.run(tf.trainable_variables()[i].assign(pretrained_vgg16[k]))
 		logging.info('Num params: %d' % sum(v.get_shape().num_elements() for v in tf.trainable_variables()))
 
