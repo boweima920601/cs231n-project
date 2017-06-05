@@ -54,7 +54,7 @@ class Model:
 		start_time = '{:%m%d_%H%M%S}'.format(datetime.datetime.now())
 		self.index_file = 'logs/index_log' + start_time + '.txt'
 		self.epoch_file = 'logs/epoch_log' + start_time + '.txt'
-		remark = description + '\n' + ' learn rate: {} \n batch size: {} \n data_size: {} \n dropout: {} \n'.format(FLAGS.start_learning_rate, FLAGS.batch_size, FLAGS.data_size, FLAGS.dropout)
+		remark = description + '\n' + ' learn rate: {} \n regularization: {} \n batch size: {} \n data_size: {} \n dropout: {} \n'.format(FLAGS.start_learning_rate, FLAGS.reg, FLAGS.batch_size, FLAGS.data_size, FLAGS.dropout)
 
 		with open (self.index_file, 'a') as f_index:
 			f_index.write(remark)
@@ -66,34 +66,36 @@ class Model:
 		reg_func = lambda t: reg * tf.nn.l2_loss(t)
 		conv1 = X
 		for i in range(2):
-			conv1 = tf.layers.conv2d(conv1, filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
+			conv1 = tf.layers.conv2d(conv1, filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
 		pool1 = tf.layers.max_pooling2d(conv1, pool_size=[2, 2], strides=2)
 
 		conv3 = pool1
 		for i in range(2):
-			conv3 = tf.layers.conv2d(conv3, filters=128, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
+			conv3 = tf.layers.conv2d(conv3, filters=128, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
 		pool2 = tf.layers.max_pooling2d(conv3, pool_size=[2, 2], strides=2)
 
 		conv5 = pool2
 		for i in range(3):
-			conv5 = tf.layers.conv2d(conv5, filters=256, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
+			conv5 = tf.layers.conv2d(conv5, filters=256, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
 		pool3 = tf.layers.max_pooling2d(conv5, pool_size=[2, 2], strides=2)
 
 		conv8 = pool3
 		for i in range(3):
-			conv8 = tf.layers.conv2d(conv8, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
+			conv8 = tf.layers.conv2d(conv8, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
 		pool4 = tf.layers.max_pooling2d(conv8, pool_size=[2, 2], strides=2)
 
 		conv11 = pool4
 		for i in range(3):
-			conv11 = tf.layers.conv2d(conv11, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
+			conv11 = tf.layers.conv2d(conv11, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
 		pool5 = tf.layers.max_pooling2d(conv11, pool_size=[2, 2], strides=2)
 
 		pool5_flat = tf.reshape(pool5, [-1, 7 * 7 * 512])
+		# fc1 = tf.layers.dense(pool5_flat, units=4096, activation = tf.nn.relu, kernel_regularizer = reg_func)
+		# fc2 = tf.layers.dense(fc1, units=4096, activation=tf.nn.relu, kernel_regularizer = reg_func)
 		fc1 = tf.layers.dense(pool5_flat, units=4096, activation = tf.nn.relu, kernel_regularizer = reg_func)
-		fc2 = tf.layers.dense(fc1, units=4096, activation=tf.nn.relu, kernel_regularizer = reg_func)
-
-		dropout1 = tf.layers.dropout(fc2, rate=drop_rate, training=is_training)
+		dropout1 = tf.layers.dropout(fc1, rate=drop_rate, training=is_training)
+		fc2 = tf.layers.dense(dropout1, units=4096, activation=tf.nn.relu, kernel_regularizer = reg_func)
+		dropout2 = tf.layers.dropout(fc2, rate=drop_rate, training=is_training)
 		logits = tf.layers.dense(dropout1, units=10, kernel_regularizer = reg_func)
 	#     logits = tf.layers.dense(fc2, units=10)
 

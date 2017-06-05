@@ -10,9 +10,9 @@ logging.basicConfig(level=logging.INFO)
 # Tune all the hyper params here
 tf.app.flags.DEFINE_float("start_learning_rate", 1e-5, "Learning rate.")
 tf.app.flags.DEFINE_float("dropout", 0.5, "Fraction of units randomly dropped")
-tf.app.flags.DEFINE_float("reg", 1e-2, "L2 regularization to each layer")
+tf.app.flags.DEFINE_float("reg", 0, "L2 regularization to each layer")
 tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
-tf.app.flags.DEFINE_integer("epochs", 10, "Number of epochs to train.")
+tf.app.flags.DEFINE_integer("epochs", 5, "Number of epochs to train.")
 
 tf.app.flags.DEFINE_integer("data_size", 22424, "The number of training samples")
 tf.app.flags.DEFINE_boolean("is_debug", False, "Use smaller dataset for debug")
