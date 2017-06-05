@@ -90,7 +90,7 @@ def main(_):
 			print('Training')
 
 			# Runs the model
-			model.run_model(sess, dataset, epochs=FLAGS.epochs, batch_size=FLAGS.batch_size, use_save=True, plot_losses=True)
+			model.run_model(sess, dataset, epochs=FLAGS.epochs, batch_size=FLAGS.batch_size, use_save=True, plot_losses=False)
 		if FLAGS.is_testing:
 			model.run_model(sess, batch_size=FLAGS.batch_size, testing=True)
 
