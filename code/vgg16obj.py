@@ -7,8 +7,10 @@ import matplotlib.pyplot as plt
 import sys
 # %matplotlib inline
 import logging
-import datetime
 import time
+import datetime
+import pandas as pd
+
 logging.basicConfig(level=logging.INFO)
 FLAGS = tf.app.flags.FLAGS
 
@@ -24,7 +26,7 @@ class Model:
 
 	# Sets up the graph
 	def setup_system(self):
-		self.y_out = self.vgg16(self.X, self.y, drop_rate=FLAGS.dropout, is_training=self.is_training)
+		self.y_out = self.vgg16(self.X, drop_rate=FLAGS.dropout, is_training=self.is_training)
 
 		total_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.y, logits=self.y_out)
 		self.mean_loss = tf.reduce_mean(total_loss)
@@ -44,6 +46,8 @@ class Model:
 		self.correct_prediction = tf.equal(tf.argmax(self.y_out, 1), self.y)
 		self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
 
+		self.softmax_y = tf.nn.softmax(self.y_out)
+
 	# Creates log files and adds description
 	def setup_log(self):
 		description = raw_input('Please add description for the model: ')
@@ -58,7 +62,7 @@ class Model:
 			f_epoch.write(remark)
 
 	# Creates net structure
-	def vgg16(self, X, y, drop_rate=0.5, is_training=None):
+	def vgg16(self, X, drop_rate=0.5, is_training=None):
 		conv1 = X
 		for i in range(2):
 			conv1 = tf.layers.conv2d(conv1, filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
@@ -146,7 +150,27 @@ class Model:
 				f_epoch.write(time_now)
 
 	# Runs the model
-	def run_model(self, session, dataset, epochs=1, batch_size=64, use_save=True, plot_losses=False):
+	def run_model(self, session, dataset=None, epochs=1, batch_size=64, use_save=True, plot_losses=False, testing=False):
+		if testing:
+			X_test = np.load('../data/test_data.npy')
+			# X_test = dataset
+			output_y = np.zeros((X_test.shape[0], 10))
+			for i in range(int(math.ceil((X_test.shape[0] / batch_size)))):
+				start_idx = (i * batch_size) % X_test.shape[0]
+				idx = indicies[start_idx: start_idx + batch_size]
+				feed_dict = {self.X: X_test[idx,:], self.is_training: False}
+
+				# Computes loss and correct predictions
+				# and (if given) perform a training step
+				output_y[start_idx: start_idx + batch_size] = session.run([self.softmax_y], feed_dict=feed_dict)
+
+				rows = np.load('../data/test_data_id.npy')
+				cols = ['c0', 'c1', 'c2', 'c3','c4', 'c5', 'c6', 'c7', 'c8', 'c9']
+				result = pd.DataFrame(y_test, index = rows, columns = cols)
+				result.to_csv('test_result.csv', index=True, header=True, sep=',')
+			return
+
+
 		X_train, y_train, X_val, y_val = dataset
 		# shuffle indicies
 		train_indicies = np.arange(X_train.shape[0])
