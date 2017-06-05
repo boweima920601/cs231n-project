@@ -26,7 +26,7 @@ class Model:
 
 	# Sets up the graph
 	def setup_system(self):
-		self.y_out = self.vgg16(self.X, drop_rate=FLAGS.dropout, is_training=self.is_training)
+		self.y_out = self.vgg16(self.X, drop_rate=FLAGS.dropout, reg=FLAGS.reg, is_training=self.is_training)
 
 		total_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.y, logits=self.y_out)
 		self.mean_loss = tf.reduce_mean(total_loss)
@@ -62,38 +62,39 @@ class Model:
 			f_epoch.write(remark)
 
 	# Creates net structure
-	def vgg16(self, X, drop_rate=0.5, is_training=None):
+	def vgg16(self, X, drop_rate=0.5, reg = 1e-2, is_training=None):
+		reg_func = lambda t: reg * tf.nn.loss(t)
 		conv1 = X
 		for i in range(2):
-			conv1 = tf.layers.conv2d(conv1, filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+			conv1 = tf.layers.conv2d(conv1, filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
 		pool1 = tf.layers.max_pooling2d(conv1, pool_size=[2, 2], strides=2)
 
 		conv3 = pool1
 		for i in range(2):
-			conv3 = tf.layers.conv2d(conv3, filters=128, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+			conv3 = tf.layers.conv2d(conv3, filters=128, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
 		pool2 = tf.layers.max_pooling2d(conv3, pool_size=[2, 2], strides=2)
 
 		conv5 = pool2
 		for i in range(3):
-			conv5 = tf.layers.conv2d(conv5, filters=256, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+			conv5 = tf.layers.conv2d(conv5, filters=256, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
 		pool3 = tf.layers.max_pooling2d(conv5, pool_size=[2, 2], strides=2)
 
 		conv8 = pool3
 		for i in range(3):
-			conv8 = tf.layers.conv2d(conv8, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+			conv8 = tf.layers.conv2d(conv8, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
 		pool4 = tf.layers.max_pooling2d(conv8, pool_size=[2, 2], strides=2)
 
 		conv11 = pool4
 		for i in range(3):
-			conv11 = tf.layers.conv2d(conv11, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
+			conv11 = tf.layers.conv2d(conv11, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
 		pool5 = tf.layers.max_pooling2d(conv11, pool_size=[2, 2], strides=2)
 
 		pool5_flat = tf.reshape(pool5, [-1, 7 * 7 * 512])
-		fc1 = tf.layers.dense(pool5_flat, units=4096, activation = tf.nn.relu)
-		fc2 = tf.layers.dense(fc1, units=4096, activation=tf.nn.relu)
+		fc1 = tf.layers.dense(pool5_flat, units=4096, activation = tf.nn.relu, kernel_regularizer = reg_func)
+		fc2 = tf.layers.dense(fc1, units=4096, activation=tf.nn.relu, kernel_regularizer = reg_func)
 
 		dropout1 = tf.layers.dropout(fc2, rate=drop_rate, training=is_training)
-		logits = tf.layers.dense(dropout1, units=10)
+		logits = tf.layers.dense(dropout1, units=10, kernel_regularizer = reg_func)
 	#     logits = tf.layers.dense(fc2, units=10)
 
 		return logits

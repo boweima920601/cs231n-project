@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.INFO)
 # Tune all the hyper params here
 tf.app.flags.DEFINE_float("start_learning_rate", 1e-5, "Learning rate.")
 tf.app.flags.DEFINE_float("dropout", 0.5, "Fraction of units randomly dropped")
+tf.app.flags.DEFINE_float("reg", 1e-2, "L2 regularization to each layer")
 tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("epochs", 10, "Number of epochs to train.")
 
@@ -23,7 +24,7 @@ tf.app.flags.DEFINE_integer("log_every", 64 * 30, "How many iterations to do per
 tf.app.flags.DEFINE_float("train_percent", 0.9, "Fraction of data to use as train set")
 tf.app.flags.DEFINE_boolean("eval_every_epoch", True, "Whether evaluate after each epoch")
 
-tf.app.flags.DEFINE_boolean("is_testing", True, "Whether we are testing")
+tf.app.flags.DEFINE_boolean("is_testing", False, "Whether we are testing")
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -51,9 +52,11 @@ def load_data(debug=True, data_size=1000):
 	X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy'))
 	y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy'))
 	train_indicies = np.arange(X_train.shape[0])
-	np.random.shuffle(train_indicies)
-	num_training = int(math.ceil(X_train.shape[0] * FLAGS.train_percent))
+	# np.random.shuffle(train_indicies)
+	num_training = data_size - (346 + 814 + 823)  # validate on last 3 drivers
+	# num_training = int(math.ceil(X_train.shape[0] * FLAGS.train_percent))
 	in_train = train_indicies[:num_training]
+	# np.random.shuffle(in_train)
 	in_val = train_indicies[num_training:]
 	X_val = X_train[in_val]
 	y_val = y_train[in_val]
@@ -85,7 +88,7 @@ def main(_):
 
 		if not FLAGS.is_testing:
 			print('Training')
-			
+
 			# Runs the model
 			model.run_model(sess, dataset, epochs=FLAGS.epochs, batch_size=FLAGS.batch_size, use_save=True, plot_losses=True)
 		if FLAGS.is_testing:
