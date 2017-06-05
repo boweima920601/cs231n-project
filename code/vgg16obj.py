@@ -63,7 +63,7 @@ class Model:
 
 	# Creates net structure
 	def vgg16(self, X, drop_rate=0.5, reg = 1e-2, is_training=None):
-		reg_func = lambda t: reg * tf.nn.loss(t)
+		reg_func = lambda t: reg * tf.nn.l2_loss(t)
 		conv1 = X
 		for i in range(2):
 			conv1 = tf.layers.conv2d(conv1, filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu, kernel_regularizer = reg_func)
