@@ -99,7 +99,7 @@ class Model:
 		return logits
 
 	# Runs an epoch
-	def run_epoch(self, session, Xd, yd, e, variables, indicies, batch_size=64, 
+	def run_epoch(self, session, Xd, yd, e, variables, indicies, batch_size=64,
 				training_now=True, use_save=True, plot_losses=True):
 		index = 0
 		correct = 0
@@ -167,7 +167,8 @@ class Model:
 				rows = np.load('../data/test_data_id.npy')
 				cols = ['c0', 'c1', 'c2', 'c3','c4', 'c5', 'c6', 'c7', 'c8', 'c9']
 				result = pd.DataFrame(y_test, index = rows, columns = cols)
-				result.to_csv('test_result.csv', index=True, header=True, sep=',')
+				now = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
+				result.to_csv('test_result_%s.csv' % now, index=True, header=True, sep=',')
 			return
 
 
@@ -183,13 +184,13 @@ class Model:
 
 		for e in range(epochs):
 			# Train
-			self.run_epoch(session, X_train, y_train, e, train_vars, train_indicies, batch_size=batch_size, 
+			self.run_epoch(session, X_train, y_train, e, train_vars, train_indicies, batch_size=batch_size,
 				training_now=True, use_save=True, plot_losses=plot_losses)
 			# Evaluate
 			if FLAGS.eval_every_epoch:
-				self.run_epoch(session, X_val, y_val, e, val_vars, val_indicies, batch_size=batch_size, 
+				self.run_epoch(session, X_val, y_val, e, val_vars, val_indicies, batch_size=batch_size,
 					training_now=False, use_save=False, plot_losses=plot_losses)
 
 		if not FLAGS.eval_every_epoch:
-			self.run_epoch(session, X_val, y_val, e, val_vars, val_indicies, batch_size=batch_size, 
+			self.run_epoch(session, X_val, y_val, e, val_vars, val_indicies, batch_size=batch_size,
 					training_now=False, use_save=False, plot_losses=plot_losses)
