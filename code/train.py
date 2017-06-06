@@ -8,8 +8,8 @@ from vgg16obj import Model
 logging.basicConfig(level=logging.INFO)
 
 # Tune all the hyper params here
-tf.app.flags.DEFINE_float("start_learning_rate", 1e-5, "Learning rate.")
-tf.app.flags.DEFINE_float("dropout", 0.5, "Fraction of units randomly dropped")
+tf.app.flags.DEFINE_float("start_learning_rate", 1e-4, "Learning rate.")
+tf.app.flags.DEFINE_float("dropout", 0.8, "Fraction of units randomly dropped")
 tf.app.flags.DEFINE_float("reg", 0, "L2 regularization to each layer")
 tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("epochs", 5, "Number of epochs to train.")
@@ -53,11 +53,16 @@ def load_data(debug=True, data_size=1000):
 	y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy'))
 	train_indicies = np.arange(X_train.shape[0])
 	# np.random.shuffle(train_indicies)
-	num_training = data_size - (346 + 814 + 823)  # validate on last 3 drivers
-	# num_training = int(math.ceil(X_train.shape[0] * FLAGS.train_percent))
-	in_train = train_indicies[:num_training]
-	# np.random.shuffle(in_train)
-	in_val = train_indicies[num_training:]
+	# driver_list = [0,725,1548,2424,3299,4377,5614,6847,8073,9269,10117,10768,11373,11964,
+	# 12688,13523,14534,15324,16244,16984,17778,18587,19407,20441,20787,21601,22424]
+	# val_list = np.random.choice(26, 3, replace = False)
+	# in_val = []
+	# for i in val_list:
+	# 	in_val = np.append(in_val, train_indicies[driver_list[i]:driver_list[i+1]])
+	in_val = train_indicies[20441:]
+	in_train = train_indicies[:20441]
+	# in_val = list(map(int, in_val))
+	# in_train = list(map(int, in_train))
 	X_val = X_train[in_val]
 	y_val = y_train[in_val]
 	X_train = X_train[in_train]

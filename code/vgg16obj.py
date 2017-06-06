@@ -96,7 +96,7 @@ class Model:
 		dropout1 = tf.layers.dropout(fc1, rate=drop_rate, training=is_training)
 		fc2 = tf.layers.dense(dropout1, units=4096, activation=tf.nn.relu, kernel_regularizer = reg_func)
 		dropout2 = tf.layers.dropout(fc2, rate=drop_rate, training=is_training)
-		logits = tf.layers.dense(dropout1, units=10, kernel_regularizer = reg_func)
+		logits = tf.layers.dense(dropout2, units=10, kernel_regularizer = reg_func)
 	#     logits = tf.layers.dense(fc2, units=10)
 
 		return logits, pool5_flat
@@ -159,7 +159,6 @@ class Model:
 	def run_model(self, session, dataset=None, epochs=1, batch_size=64, use_save=True, plot_losses=False, testing=False):
 		if testing:
 			X_test = np.load('../data/test_data.npy')
-			# X_test = dataset
 			output_y = np.zeros((X_test.shape[0], 10))
 			print('test set length:{}'.format(X_test.shape[0]))
 			indicies = np.arange(X_test.shape[0])
@@ -181,6 +180,25 @@ class Model:
 			result = pd.DataFrame(output_y, index = rows, columns = cols)
 			now = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
 			result.to_csv('test_result_%s.csv' % now, index=True, header=True, sep=',')
+
+
+			X_val = np.load(os.path.join('..', 'data', 'train_data_' + str(22424) + '.npy'))
+			y_val = np.load(os.path.join('..', 'data', 'train_label_' + str(22424) + '.npy'))
+			X_val = X_val[:725]
+			y_val = y_val[:725]
+			output_y = np.zeros(X_val.shape[0])
+			print('small validation set length:{}'.format(X_val.shape[0]))
+			indicies = np.arange(X_val.shape[0])
+			for i in range(int(math.ceil((X_val.shape[0] / batch_size)))):
+				start_idx = (i * batch_size) % X_val.shape[0]
+				idx = indicies[start_idx: start_idx + batch_size]
+				feed_dict = {self.X: X_val[idx,:], self.is_training: False}
+				temp = session.run([self.softmax_y], feed_dict=feed_dict)[0]
+				output_val_y[start_idx: start_idx + batch_size, :] = np.argmax(temp, axix = 1)
+				print('finished val {}'.format(start_idx + batch_size))
+
+			val_result = pd.DataFrame({'y_val':y_val, 'output_val_y': output_val_y})
+			val_result.to_csv('val_result_%s.csv' % now, header=True, sep=',')
 			return
 
 
