@@ -14,8 +14,8 @@ tf.app.flags.DEFINE_float("reg", 0, "L2 regularization to each layer")
 tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("epochs", 5, "Number of epochs to train.")
 
-tf.app.flags.DEFINE_integer("data_size", 100, "The number of training samples")
-tf.app.flags.DEFINE_boolean("is_debug", True, "Use smaller dataset for debug")
+tf.app.flags.DEFINE_integer("data_size", 22424, "The number of training samples")
+tf.app.flags.DEFINE_boolean("is_debug", False, "Use smaller dataset for debug")
 tf.app.flags.DEFINE_boolean("use_save", True, "Save model into checkpoint")
 
 tf.app.flags.DEFINE_integer("print_every", 64 * 5, "How many iterations to do per print.")
@@ -41,15 +41,12 @@ def initialize_model(session, saver, train_dir):
 		pretrained_vgg16 = np.load('../data/vgg16_weights.npz')
 		keys = sorted(pretrained_vgg16.keys())
 		for i, k in enumerate(keys[:-2]): # exclude the last fc layer
-			print (i, k, np.shape(pretrained_vgg16[k]), tf.trainable_variables()[i].get_shape().as_list())
-			if i < len(keys) - 6:
-				session.run(tf.trainable_variables()[i].assign(pretrained_vgg16[k]))
-			else:
-				session.run(tf.trainable_variables()[i + 1].assign(pretrained_vgg16[k]))
+			# print (i, k, np.shape(pretrained_vgg16[k]))
+			session.run(tf.trainable_variables()[i].assign(pretrained_vgg16[k]))
 		logging.info('Num params: %d' % sum(v.get_shape().num_elements() for v in tf.trainable_variables()))
 
 # Loads the data
-def load_data(debug=True, data_size=100):
+def load_data(debug=True, data_size=1000):
 	if not debug:
 		data_size = FLAGS.data_size
 	X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy'))
@@ -62,22 +59,14 @@ def load_data(debug=True, data_size=100):
 	# in_val = []
 	# for i in val_list:
 	# 	in_val = np.append(in_val, train_indicies[driver_list[i]:driver_list[i+1]])
-	if not debug:
-		in_val = train_indicies[20441:]
-		in_train = train_indicies[:20441]
-
-	else:
-		num_training = int(math.ceil(X_train.shape[0] * FLAGS.train_percent))
-		in_train = train_indicies[:num_training]
-		in_val = train_indicies[num_training:]
-
+	in_val = train_indicies[20441:]
+	in_train = train_indicies[:20441]
+	# in_val = list(map(int, in_val))
+	# in_train = list(map(int, in_train))
 	X_val = X_train[in_val]
 	y_val = y_train[in_val]
 	X_train = X_train[in_train]
 	y_train = y_train[in_train]
-	# in_val = list(map(int, in_val))
-	# in_train = list(map(int, in_train))
-
 	return X_train, y_train, X_val, y_val
 
 def main(_):
