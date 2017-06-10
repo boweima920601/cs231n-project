@@ -1,2 +1,7 @@
 data
 code/saves
+*.pyc
+*.DS_Store
+
+# logging
+log/
