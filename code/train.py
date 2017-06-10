@@ -28,6 +28,8 @@ tf.app.flags.DEFINE_boolean("is_testing", False, "Whether we are testing")
 
 FLAGS = tf.app.flags.FLAGS
 
+VGG_MEAN = [123.68, 116.78, 103.94]
+
 # Inits the model and reads checkpoints if possible
 def initialize_model(session, saver, train_dir):
 	ckpt = tf.train.get_checkpoint_state(train_dir)
@@ -63,6 +65,8 @@ def load_data(debug=True, data_size=1000):
 	in_train = train_indicies[:20441]
 	# in_val = list(map(int, in_val))
 	# in_train = list(map(int, in_train))
+	np.random.shuffle(in_val)
+	np.random.shuffle(in_train)
 	X_val = X_train[in_val]
 	y_val = y_train[in_val]
 	X_train = X_train[in_train]
