@@ -89,7 +89,8 @@ class Model:
 			conv11 = tf.layers.conv2d(conv11, filters=512, kernel_size=[3, 3], padding='same', activation=tf.nn.relu)
 		pool5 = tf.layers.max_pooling2d(conv11, pool_size=[2, 2], strides=2)
 
-		pool5_flat = tf.reshape(pool5, [-1, 7 * 7 * 512])
+		W_att = tf.get_variable("W_att", shape = (1, 7, 7, 1), dtype = tf.float32, initializer = tf.contrib.layers.xavier_initializer())
+		pool5_flat = tf.reshape(tf.multiply(W_att, pool5), [-1, 7 * 7 * 512])
 		# fc1 = tf.layers.dense(pool5_flat, units=4096, activation = tf.nn.relu, kernel_regularizer = reg_func)
 		# fc2 = tf.layers.dense(fc1, units=4096, activation=tf.nn.relu, kernel_regularizer = reg_func)
 		fc1 = tf.layers.dense(pool5_flat, units=4096, activation = tf.nn.relu, kernel_regularizer = reg_func)
