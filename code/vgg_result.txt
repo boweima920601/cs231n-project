@@ -1,0 +1,147 @@
+=========last 3 drivers as validation
+
+ learn rate: 1e-05
+ regularization: 0
+ batch size: 64
+ data_size: 22424
+ dropout: 0.7
+
+Epoch # 1
+Val Loss: 1.1656
+Val Accuracy:0.56783
+   0605_222408
+
+Epoch # 2
+Val Loss: 1.1099
+Val Accuracy:0.58396
+   0605_224119
+
+Epoch # 3
+Val Loss: 1.2087
+Val Accuracy:0.58447
+   0605_225830
+
+
+
+
+ learn rate: 1e-05
+ regularization: 0
+ batch size: 64
+ data_size: 22424
+ dropout: 0.5
+
+Epoch # 1
+Val Loss: 1.0838
+Val Accuracy:0.69541
+
+Epoch # 2
+Val Loss: 1.4807
+Val Accuracy:0.66515
+
+Epoch # 3
+Val Loss: 1.5202
+Val Accuracy:0.61926
+
+
+test on model-1:
+0.53
+test_result_2017-06-10-05-25.csv
+
+
+ learn rate: 0.0001 
+ regularization: 0 
+ batch size: 64 
+ data_size: 22424 
+ dropout: 0.7 
+
+Epoch # 1
+Val Loss: 1.1648
+Val Accuracy:0.62885
+   0605_233109
+
+Epoch # 2
+Val Loss: 1.5544
+Val Accuracy:0.62532
+   0605_234820
+
+
+
+
+
+learn rate: 0.0001 
+dropout: 0.6
+
+Epoch # 1
+Val Loss: 2.0816
+Val Accuracy:0.52648
+
+Epoch # 2
+Val Loss: 2.0155
+Val Accuracy:0.57388
+
+test: 
+0.53
+
+Epoch # 3
+Val Loss: 2.7139
+Val Accuracy:0.50378
+
+
+========= train last 3 fc layers
+learn rate: 1e-4
+dropout: 0.5
+
+Epoch # 1
+Val Loss: 1.6022
+Val Accuracy:0.54715
+
+Epoch # 2
+Val Loss: 2.0187
+Val Accuracy:0.49319
+
+
+
+
+=========random 3 drivers as validation
+random 3 drivers
+ learn rate: 0.0001
+ regularization: 0
+ batch size: 64
+ data_size: 22424
+ dropout: 0.7
+
+Epoch # 1
+Val Loss: 1.4273
+Val Accuracy:0.60313
+   0606_011451
+
+
+
+ learn rate: 0.001
+ regularization: 0
+ batch size: 64
+ data_size: 22424
+ dropout: 0.7
+
+Epoch # 1
+Val Loss: 3.2214
+Val Accuracy:0.33787
+   0606_014409
+
+
+
+ learn rate: 0.0001
+ regularization: 0
+ batch size: 64
+ data_size: 22424
+ dropout: 0.8
+
+Epoch # 1
+Val Loss: 0.99683
+Val Accuracy:0.6928
+   0606_020435
+
+Epoch # 2
+Val Loss: 0.72837
+Val Accuracy:0.84129
+   0606_022120
