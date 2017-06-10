@@ -28,6 +28,8 @@ tf.app.flags.DEFINE_boolean("is_testing", False, "Whether we are testing")
 
 FLAGS = tf.app.flags.FLAGS
 
+VGG_MEAN = [103.94, 116.78, 123.68]
+
 # Inits the model and reads checkpoints if possible
 def initialize_model(session, saver, train_dir):
 	ckpt = tf.train.get_checkpoint_state(train_dir)
@@ -47,12 +49,16 @@ def initialize_model(session, saver, train_dir):
 		logging.info('Num params: %d' % sum(v.get_shape().num_elements() for v in tf.trainable_variables()))
 
 # Loads the data
-def load_data(debug=True, data_size=1000):
+def load_data(debug=True, data_size=1000, subtract_mean = True):
 	if not debug:
 		data_size = FLAGS.data_size
 	X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy'))
 	y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy'))
 	train_indicies = np.arange(X_train.shape[0])
+
+	if subtract_mean:
+		vgg_mean = np.array(VGG_MEAN)[np.newaxis, np.newaxis]
+		X_train -= vgg_mean
 	# np.random.shuffle(train_indicies)
 	# driver_list = [0,725,1548,2424,3299,4377,5614,6847,8073,9269,10117,10768,11373,11964,
 	# 12688,13523,14534,15324,16244,16984,17778,18587,19407,20441,20787,21601,22424]
