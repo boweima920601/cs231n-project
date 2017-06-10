@@ -159,34 +159,34 @@ class Model:
 	# Runs the model
 	def run_model(self, session, dataset=None, epochs=1, batch_size=64, use_save=True, plot_losses=False, testing=False):
 		if testing:
-			# X_test = np.load('../data/test_data.npy')
-			# output_y = np.zeros((X_test.shape[0], 10))
-			# print('test set length:{}'.format(X_test.shape[0]))
-			# indicies = np.arange(X_test.shape[0])
-			# for i in range(int(math.ceil((X_test.shape[0] / batch_size)))):
-			# 	start_idx = (i * batch_size) % X_test.shape[0]
-			# 	idx = indicies[start_idx: start_idx + batch_size]
-			# 	# print(X_test[idx,:].shape)
-			# 	feed_dict = {self.X: X_test[idx,:], self.is_training: False}
-			#
-			# 	# Computes loss and correct predictions
-			# 	# and (if given) perform a training step
-			# 	temp = session.run([self.softmax_y, self.pool5], feed_dict=feed_dict)
-			# 	output_y[start_idx: start_idx + batch_size, :] = temp[0]
-			# 	pool5_out = temp[1]
-			# 	print('finished {}'.format(start_idx + batch_size))
-			#
-			# rows = np.load('../data/test_data_id.npy')
-			# cols = ['c0', 'c1', 'c2', 'c3','c4', 'c5', 'c6', 'c7', 'c8', 'c9']
-			# result = pd.DataFrame(output_y, index = rows, columns = cols)
-			# now = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
-			# result.to_csv('test_result_%s.csv' % now, index=True, header=True, sep=',')
+			X_test = np.load('../data/test_data.npy')
+			output_y = np.zeros((X_test.shape[0], 10))
+			print('test set length:{}'.format(X_test.shape[0]))
+			indicies = np.arange(X_test.shape[0])
+			for i in range(int(math.ceil((X_test.shape[0] / batch_size)))):
+				start_idx = (i * batch_size) % X_test.shape[0]
+				idx = indicies[start_idx: start_idx + batch_size]
+				# print(X_test[idx,:].shape)
+				feed_dict = {self.X: X_test[idx,:], self.is_training: False}
+
+				# Computes loss and correct predictions
+				# and (if given) perform a training step
+				temp = session.run([self.softmax_y, self.pool5], feed_dict=feed_dict)
+				output_y[start_idx: start_idx + batch_size, :] = temp[0]
+				pool5_out = temp[1]
+				print('finished {}'.format(start_idx + batch_size))
+
+			rows = np.load('../data/test_data_id.npy')
+			cols = ['c0', 'c1', 'c2', 'c3','c4', 'c5', 'c6', 'c7', 'c8', 'c9']
+			result = pd.DataFrame(output_y, index = rows, columns = cols)
+			now = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
+			result.to_csv('test_result_%s.csv' % now, index=True, header=True, sep=',')
 
 
 			X_val = np.load(os.path.join('..', 'data', 'train_data_' + str(22424) + '.npy'))
 			y_val = np.load(os.path.join('..', 'data', 'train_label_' + str(22424) + '.npy'))
-			X_val = X_val[:725]
-			y_val = y_val[:725]
+			X_val = X_val[20441:]
+			y_val = y_val[20441:]
 			output_val_y = np.zeros(X_val.shape[0])
 			print('small validation set length:{}'.format(X_val.shape[0]))
 			indicies = np.arange(X_val.shape[0])
@@ -199,7 +199,8 @@ class Model:
 				print('finished val {}'.format(start_idx + batch_size))
 
 			val_result = pd.DataFrame({'y_val':y_val, 'output_val_y': output_val_y})
-			val_result.to_csv('val_result_%s.csv', header=True, sep=',')
+			now = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
+			val_result.to_csv('val_result_%s.csv' % now, header=True, sep=',')
 			return
 
 
