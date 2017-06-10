@@ -52,8 +52,8 @@ def initialize_model(session, saver, train_dir):
 def load_data(debug=True, data_size=1000, subtract_mean = True):
 	if not debug:
 		data_size = FLAGS.data_size
-	X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy'))
-	y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy'))
+	X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy')).astype(np.float32)
+	y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy')).astype(np.float32)
 	train_indicies = np.arange(X_train.shape[0])
 
 	if subtract_mean:
