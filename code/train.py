@@ -28,7 +28,7 @@ tf.app.flags.DEFINE_boolean("is_testing", False, "Whether we are testing")
 
 FLAGS = tf.app.flags.FLAGS
 
-VGG_MEAN = [123.68, 116.78, 103.94]
+VGG_MEAN = [103.94, 116.78, 123.68]
 
 # Inits the model and reads checkpoints if possible
 def initialize_model(session, saver, train_dir):
@@ -48,11 +48,17 @@ def initialize_model(session, saver, train_dir):
 		logging.info('Num params: %d' % sum(v.get_shape().num_elements() for v in tf.trainable_variables()))
 
 # Loads the data
-def load_data(debug=True, data_size=1000):
+def load_data(debug=True, data_size=1000, subtract_mean = True):
 	if not debug:
 		data_size = FLAGS.data_size
-	X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy'))
-	y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy'))
+	X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy')).astype(np.float32)
+	y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy')).astype(np.float32)
+
+	# subtract mean of ImageNet to be consistent
+	if subtract_mean:
+		vgg_mean = np.array(VGG_MEAN)[np.newaxis, np.newaxis]
+		X_train -= vgg_mean
+
 	train_indicies = np.arange(X_train.shape[0])
 	# np.random.shuffle(train_indicies)
 	# driver_list = [0,725,1548,2424,3299,4377,5614,6847,8073,9269,10117,10768,11373,11964,
@@ -71,7 +77,17 @@ def load_data(debug=True, data_size=1000):
 	y_val = y_train[in_val]
 	X_train = X_train[in_train]
 	y_train = y_train[in_train]
+
 	return X_train, y_train, X_val, y_val
+
+def load_test_data(subtract_mean = True):
+	""" Function to load test data """
+	X_test = np.load(os.path.join('..', 'data', 'test_data.npy')).astype(np.float32)
+	if subtract_mean:
+		vgg_mean = np.array(VGG_MEAN)[np.newaxis, np.newaxis]
+		X_test -= vgg_mean
+	return X_test
+
 
 def main(_):
 	# Creates directory for checkpoint and logs
@@ -81,6 +97,7 @@ def main(_):
 		os.makedirs('logs')
 
 	if not FLAGS.is_testing:
+		print("Loading training data")
 		dataset = load_data(FLAGS.is_debug)
 		X_train, y_train, X_val, y_val = dataset
 		print('data size:')
