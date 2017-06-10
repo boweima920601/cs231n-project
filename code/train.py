@@ -4,7 +4,7 @@ import sys
 import os
 import numpy as np
 import math
-from vgg16obj import Model
+from vgg16obj_att import Model
 logging.basicConfig(level=logging.INFO)
 
 # Tune all the hyper params here
@@ -42,8 +42,8 @@ def initialize_model(session, saver, train_dir):
 		session.run(tf.global_variables_initializer())
 		pretrained_vgg16 = np.load('../data/vgg16_weights.npz')
 		keys = sorted(pretrained_vgg16.keys())
-		# for i, k in enumerate(keys[:-2]): # exclude the last fc layer
-		for i, k in enumerate(keys[:-4]): # exclude the last three fc layer
+		for i, k in enumerate(keys[:-2]): # exclude the last fc layer
+		# for i, k in enumerate(keys[:-4]): # exclude the last three fc layer
 			# print (i, k, np.shape(pretrained_vgg16[k]))
 			session.run(tf.trainable_variables()[i].assign(pretrained_vgg16[k]))
 		logging.info('Num params: %d' % sum(v.get_shape().num_elements() for v in tf.trainable_variables()))
