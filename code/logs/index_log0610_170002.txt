@@ -1,0 +1,6 @@
+lalala
+ learn rate: 0.0001 
+ regularization: 0 
+ batch size: 64 
+ data_size: 100 
+ dropout: 0.5 
