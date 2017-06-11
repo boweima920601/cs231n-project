@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_float("reg", 0, "L2 regularization to each layer")
 tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("epochs", 10, "Number of epochs to train.")
 
-tf.app.flags.DEFINE_integer("data_size", 100, "The number of training samples")
+tf.app.flags.DEFINE_integer("data_size", 22424, "The number of training samples")
 tf.app.flags.DEFINE_boolean("is_debug", False, "Use smaller dataset for debug")
 tf.app.flags.DEFINE_boolean("use_save", True, "Save model into checkpoint")
 
@@ -47,8 +47,8 @@ def initialize_model(session, saver, train_dir):
 			# print (i, k, np.shape(pretrained_vgg16[k]))
 			if i < len(keys) - 6:
 				session.run(tf.trainable_variables()[i].assign(pretrained_vgg16[k]))
- 			else:
- 				session.run(tf.trainable_variables()[i + 1].assign(pretrained_vgg16[k]))
+			else:
+				session.run(tf.trainable_variables()[i + 1].assign(pretrained_vgg16[k]))
 		logging.info('Num params: %d' % sum(v.get_shape().num_elements() for v in tf.trainable_variables()))
 
 # Loads the data
