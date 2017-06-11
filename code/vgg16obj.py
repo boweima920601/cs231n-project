@@ -11,6 +11,8 @@ import time
 import datetime
 import pandas as pd
 
+VGG_MEAN = [103.94, 116.78, 123.68]
+
 logging.basicConfig(level=logging.INFO)
 FLAGS = tf.app.flags.FLAGS
 
@@ -26,7 +28,7 @@ class Model:
 
 	# Sets up the graph
 	def setup_system(self):
-		self.y_out, self.pool5 = self.vgg16(self.X, drop_rate=FLAGS.dropout, reg=FLAGS.reg, is_training=self.is_training)
+		self.y_out, self.pool5, self.W_att = self.vgg16(self.X, drop_rate=FLAGS.dropout, reg=FLAGS.reg, is_training=self.is_training)
 
 		total_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.y, logits=self.y_out)
 		self.mean_loss = tf.reduce_mean(total_loss)
@@ -135,6 +137,7 @@ class Model:
 						f_index.write(index_res)
 						f_index.write(time_now)
 
+
 		total_correct = correct / Xd.shape[0]
 		total_loss /= Xd.shape[0]
 		if training_now:
@@ -159,7 +162,8 @@ class Model:
 	# Runs the model
 	def run_model(self, session, dataset=None, epochs=1, batch_size=64, use_save=True, plot_losses=False, testing=False):
 		if testing:
-			X_test = np.load('../data/test_data.npy')
+			X_test = np.load('../data/test_data.npy').astype(np.float32)
+			X_test -= np.array(VGG_MEAN)[np.newaxis, np.newaxis]
 			output_y = np.zeros((X_test.shape[0], 10))
 			print('test set length:{}'.format(X_test.shape[0]))
 			indicies = np.arange(X_test.shape[0])
@@ -222,6 +226,9 @@ class Model:
 			if FLAGS.eval_every_epoch:
 				self.run_epoch(session, X_val, y_val, e, val_vars, val_indicies, batch_size=batch_size,
 					training_now=False, use_save=False, plot_losses=plot_losses)
+
+		W_att = np.array(session.run(self.W_att)).squeeze()
+		np.savetxt('logs/att_log' + '{:%m%d_%H%M%S}'.format(datetime.datetime.now()) + '.txt', W_att)
 
 		if not FLAGS.eval_every_epoch:
 			self.run_epoch(session, X_val, y_val, e, val_vars, val_indicies, batch_size=batch_size,
