@@ -26,7 +26,8 @@ tf.app.flags.DEFINE_boolean("is_testing", False, "Whether we are testing")
 
 FLAGS = tf.app.flags.FLAGS
 
-mean_pixel = [103.94, 116.78, 123.68]
+mean_pixel = [95.07919331,  96.92462179,  80.06607895]
+std_pixel = [85.10712557,  84.6052525 ,  73.99278229] 
 
 # Inits the model and reads checkpoints if possible
 def initialize_model(session, saver, train_dir):
@@ -58,7 +59,7 @@ def load_data(debug=True, data_size=1000):
 
 	for c in range(3):
 		X_train[:, :, :, c] = X_train[:, :, :, c] - mean_pixel[c]
-		
+
 	# np.random.shuffle(train_indicies)
 	# driver_list = [0,725,1548,2424,3299,4377,5614,6847,8073,9269,10117,10768,11373,11964,
 	# 12688,13523,14534,15324,16244,16984,17778,18587,19407,20441,20787,21601,22424]

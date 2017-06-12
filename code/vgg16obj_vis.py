@@ -19,7 +19,8 @@ import pandas as pd
 logging.basicConfig(level=logging.INFO)
 FLAGS = tf.app.flags.FLAGS
 
-mean_pixel = [103.94, 116.78, 123.68]
+mean_pixel = [95.07919331,  96.92462179,  80.06607895]
+std_pixel = [85.10712557,  84.6052525 ,  73.99278229] 
 
 class Model:
 	def __init__(self):
@@ -177,7 +178,7 @@ class Model:
 		if get_vis:
 			plt.rcParams['figure.figsize'] = (10.0, 10.0) # set default size of plots
 			plt.rcParams['image.interpolation'] = 'nearest'
-			# plt.rcParams['image.cmap'] = 'gray'
+			plt.rcParams['image.cmap'] = 'gray'
 			X_train, y_train, X_val, y_val = dataset
 			# mask = np.arange(5)
 			mask = [0, 76, 150, 238, 319, 402, 475, 558, 630, 687]
@@ -185,6 +186,9 @@ class Model:
 			mask = np.asarray(mask)
 			Xm = X_train[mask]
 			ym = y_train[mask]
+
+			for c in range(3):
+					Xm[:, :, :, c] = Xm[:, :, :, c] + mean_pixel[c]
 
 			feed_dict = {self.X: Xm, self.y: ym, self.is_training: False}
 			saliency = session.run(self.grads, feed_dict)
