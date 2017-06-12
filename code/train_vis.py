@@ -4,7 +4,7 @@ import sys
 import os
 import numpy as np
 import math
-from vgg16obj import Model
+from vgg16obj_vis import Model
 logging.basicConfig(level=logging.INFO)
 
 # Tune all the hyper params here
@@ -55,8 +55,10 @@ def load_data(debug=True, data_size=1000):
 	train_indicies = np.arange(X_train.shape[0])
 
 	# normalize images by subtracting mean
+
 	for c in range(3):
 		X_train[:, :, :, c] = X_train[:, :, :, c] - mean_pixel[c]
+		
 	# np.random.shuffle(train_indicies)
 	# driver_list = [0,725,1548,2424,3299,4377,5614,6847,8073,9269,10117,10768,11373,11964,
 	# 12688,13523,14534,15324,16244,16984,17778,18587,19407,20441,20787,21601,22424]
@@ -96,14 +98,16 @@ def main(_):
 		# Inits the model
 		initialize_model(sess, model.saver, './saves/')
 
-		if not FLAGS.is_testing:
-			print('Training')
+		# if not FLAGS.is_testing:
+		# 	print('Training')
 
-			# Runs the model
-			model.run_model(sess, dataset, epochs=FLAGS.epochs, batch_size=FLAGS.batch_size, use_save=True, plot_losses=False)
-		if FLAGS.is_testing:
-			model.run_model(sess, batch_size=FLAGS.batch_size, testing=True)
+		# 	# Runs the model
+		# 	model.run_model(sess, dataset, epochs=FLAGS.epochs, batch_size=FLAGS.batch_size, use_save=True, plot_losses=False)
+		# if FLAGS.is_testing:
+		# 	model.run_model(sess, batch_size=FLAGS.batch_size, testing=True)
 
+		# visualization
+		model.run_model(sess, dataset, epochs=FLAGS.epochs, batch_size=FLAGS.batch_size, use_save=False, plot_losses=False, get_vis=True)
 
 if __name__ == "__main__":
 	tf.app.run()
