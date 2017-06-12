@@ -4,12 +4,12 @@ import sys
 import os
 import numpy as np
 import math
-from vgg16obj_att import Model
+from vgg16obj import Model
 logging.basicConfig(level=logging.INFO)
 
 # Tune all the hyper params here
 tf.app.flags.DEFINE_float("start_learning_rate", 1e-4, "Learning rate.")
-tf.app.flags.DEFINE_float("dropout", 0.5, "Fraction of units randomly dropped")
+tf.app.flags.DEFINE_float("dropout", 0.7, "Fraction of units randomly dropped")
 tf.app.flags.DEFINE_float("reg", 0, "L2 regularization to each layer")
 tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("epochs", 10, "Number of epochs to train.")
@@ -20,15 +20,13 @@ tf.app.flags.DEFINE_boolean("use_save", True, "Save model into checkpoint")
 
 tf.app.flags.DEFINE_integer("print_every", 64 * 5, "How many iterations to do per print.")
 tf.app.flags.DEFINE_integer("log_every", 64 * 5, "How many iterations to do per log.")
-
-tf.app.flags.DEFINE_float("train_percent", 0.9, "Fraction of data to use as train set")
 tf.app.flags.DEFINE_boolean("eval_every_epoch", True, "Whether evaluate after each epoch")
 
 tf.app.flags.DEFINE_boolean("is_testing", False, "Whether we are testing")
 
 FLAGS = tf.app.flags.FLAGS
 
-VGG_MEAN = [103.94, 116.78, 123.68]
+mean_pixel = [103.94, 116.78, 123.68]
 
 # Inits the model and reads checkpoints if possible
 def initialize_model(session, saver, train_dir):
@@ -45,23 +43,20 @@ def initialize_model(session, saver, train_dir):
 		for i, k in enumerate(keys[:-2]): # exclude the last fc layer
 		# for i, k in enumerate(keys[:-4]): # exclude the last three fc layer
 			# print (i, k, np.shape(pretrained_vgg16[k]))
-			if i < len(keys) - 6:
-				session.run(tf.trainable_variables()[i].assign(pretrained_vgg16[k]))
-			else:
-				session.run(tf.trainable_variables()[i + 1].assign(pretrained_vgg16[k]))
+			session.run(tf.trainable_variables()[i].assign(pretrained_vgg16[k]))
 		logging.info('Num params: %d' % sum(v.get_shape().num_elements() for v in tf.trainable_variables()))
 
 # Loads the data
-def load_data(debug=True, data_size=1000, subtract_mean = True):
+def load_data(debug=True, data_size=1000):
 	if not debug:
 		data_size = FLAGS.data_size
-	X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy')).astype(np.float32)
-	y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy')).astype(np.float32)
+	X_train = np.load(os.path.join('..', 'data', 'train_data_' + str(data_size) + '.npy'))
+	y_train = np.load(os.path.join('..', 'data', 'train_label_' + str(data_size) + '.npy'))
 	train_indicies = np.arange(X_train.shape[0])
 
-	if subtract_mean:
-		vgg_mean = np.array(VGG_MEAN)[np.newaxis, np.newaxis]
-		X_train -= vgg_mean
+	# normalize images by subtracting mean
+	for c in range(3):
+		X_train[:, :, :, c] = X_train[:, :, :, c] - mean_pixel[c]
 	# np.random.shuffle(train_indicies)
 	# driver_list = [0,725,1548,2424,3299,4377,5614,6847,8073,9269,10117,10768,11373,11964,
 	# 12688,13523,14534,15324,16244,16984,17778,18587,19407,20441,20787,21601,22424]
